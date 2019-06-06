@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name = "XLSX Streaming Reader"
+  s.name = "xlsx_streaming_reader"
   s.authors = ["Payten Giles", "Mark Triggs"]
   s.version = "0.0.1"
   s.date = "2019-06-06"
