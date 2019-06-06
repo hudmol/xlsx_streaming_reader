@@ -60,6 +60,7 @@ class XLSXStreamingReader
   ATTRIBUTE_REFERENCE = 'r'
   ATTRIBUTE_TYPE = 't'
 
+  class XLSXFileNotReadable < StandardError; end
 
   def initialize(filename)
     @filename = filename
@@ -90,20 +91,27 @@ class XLSXStreamingReader
   end
 
   def each_row(sheet_number = 0, &block)
-    pkg = org.apache.poi.openxml4j.opc.OPCPackage.open(@filename)
-    xssf_reader = org.apache.poi.xssf.eventusermodel.XSSFReader.new(pkg)
-    workbook_properties = extract_workbook_properties(xssf_reader)
-    sheet = xssf_reader.get_sheets_data.take(sheet_number + 1).last
-
     begin
-      parse_with_handler(sheet,
-                         SheetHandler.new(xssf_reader.get_shared_strings_table,
-                                          xssf_reader.get_styles_table,
-                                          workbook_properties,
-                                          &block))
-    ensure
-      sheet.close
-      pkg.close
+      pkg = org.apache.poi.openxml4j.opc.OPCPackage.open(@filename)
+      xssf_reader = org.apache.poi.xssf.eventusermodel.XSSFReader.new(pkg)
+      workbook_properties = extract_workbook_properties(xssf_reader)
+      sheet = xssf_reader.get_sheets_data.take(sheet_number + 1).last
+
+      begin
+        parse_with_handler(sheet,
+                           SheetHandler.new(xssf_reader.get_shared_strings_table,
+                                            xssf_reader.get_styles_table,
+                                            workbook_properties,
+                                            &block))
+      ensure
+        sheet.close
+        pkg.close
+      end
+    rescue org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException,
+           org.apache.poi.openxml4j.exceptions.InvalidFormatException,
+           org.apache.poi.openxml4j.exceptions.ODFNotOfficeXmlFileException,
+           org.apache.poi.openxml4j.exceptions.OLE2NotOfficeXmlFileException
+      raise XLSXFileNotReadable.new(@filename)
     end
   end
 
