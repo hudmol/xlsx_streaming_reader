@@ -23,7 +23,7 @@ class TestXLSXStreamingReader
   ]
 
   def test_exotic_sheet
-    ['ooffice_exotic_sheet.xlsx', 'excel_exotic_sheet.xlsx'].each do |file|
+    ['ooffice_exotic_sheet.xlsx', 'excel_exotic_sheet.xlsx', 'mac_excel_exotic_sheet.xlsx'].each do |file|
       XLSXStreamingReader.new(fixture_file(file)).each.each_with_index do |row, idx|
         assert_equal(file, EXOTIC_CONTENT[idx], row)
       end
