@@ -136,7 +136,7 @@ class XLSXStreamingReader
     def col_reference_to_index(s)
       raise ArgumentError.new(s) unless s =~ /\A[A-Z]+\z/
       val = 0
-      s.split("").each do |ch|
+      s.each_char do |ch|
         val *= 26
         val += (ch.ord - 'A'.ord) + 1
       end
