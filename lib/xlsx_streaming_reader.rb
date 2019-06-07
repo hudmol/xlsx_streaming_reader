@@ -92,7 +92,7 @@ class XLSXStreamingReader
 
   def each_row(sheet_number = 0, &block)
     begin
-      pkg = org.apache.poi.openxml4j.opc.OPCPackage.open(@filename)
+      pkg = org.apache.poi.openxml4j.opc.OPCPackage.open(@filename, org.apache.poi.openxml4j.opc.PackageAccess::READ)
       xssf_reader = org.apache.poi.xssf.eventusermodel.XSSFReader.new(pkg)
       workbook_properties = extract_workbook_properties(xssf_reader)
       sheet = xssf_reader.get_sheets_data.take(sheet_number + 1).last
