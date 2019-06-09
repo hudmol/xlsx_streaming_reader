@@ -127,7 +127,9 @@ class XLSXStreamingReader
 
     def initialize(stream)
       @strings = []
-      XLSXStreamingReader.parse_with_handler(stream, self)
+      if stream
+        XLSXStreamingReader.parse_with_handler(stream, self)
+      end
     end
 
     def get_item_at(n)
