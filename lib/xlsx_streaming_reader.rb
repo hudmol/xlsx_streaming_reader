@@ -270,7 +270,11 @@ class XLSXStreamingReader
         # Finished our cell.  Process its value.
         parsed_value = case @value_type
                        when :string
-                         @string_table.get_item_at(Integer(@value))
+                         if @value.to_s.empty?
+                           ''
+                         else
+                           @string_table.get_item_at(Integer(@value))
+                         end
                        when :number
                          if @value == ''
                            nil
