@@ -192,11 +192,11 @@ class XLSXStreamingReader
     end
 
     def start_element(uri, local_name, name, attributes)
-      if local_name == ROW_ELEMENT
+      if local_name.casecmp(ROW_ELEMENT) == 0
         # New row
         @current_row = []
         @last_column = 'A'
-      elsif local_name == CELL_ELEMENT
+      elsif local_name.casecmp(CELL_ELEMENT) == 0
         @value = ''
 
         # Note on sparse cell storage
@@ -241,7 +241,7 @@ class XLSXStreamingReader
         else
           @value_type = :unknown
         end
-      elsif local_name == VALUE_ELEMENT || local_name == FORMULA_ELEMENT
+      elsif local_name.casecmp(VALUE_ELEMENT) == 0 || local_name.casecmp(FORMULA_ELEMENT) == 0
         # New value within cell
         @reading_value = true
         @value = ''
@@ -249,10 +249,10 @@ class XLSXStreamingReader
     end
 
     def end_element(uri, local_name, name)
-      if local_name == ROW_ELEMENT
+      if local_name.casecmp(ROW_ELEMENT) == 0
         # Finished our row.  Yield it.
         @row_handler.call(@current_row)
-      elsif local_name == FORMULA_ELEMENT
+      elsif local_name.casecmp(FORMULA_ELEMENT) == 0
         # @value contains the content of the formula.
         if ['TRUE()', 'FALSE()'].include?(@value)
           # Override the next value we read to be marked as a boolean.  Open
@@ -262,9 +262,9 @@ class XLSXStreamingReader
         end
         @value = ''
         @reading_value = false
-      elsif local_name == VALUE_ELEMENT
+      elsif local_name.casecmp(VALUE_ELEMENT) == 0
         @reading_value = false
-      elsif local_name == CELL_ELEMENT
+      elsif local_name.casecmp(CELL_ELEMENT) == 0
         # Finished our cell.  Process its value.
         parsed_value = case @value_type
                        when :string
