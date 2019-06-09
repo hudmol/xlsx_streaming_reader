@@ -70,12 +70,12 @@ class XLSXStreamingReader
     workbook = xssf_reader.get_workbook_data
 
     workbook_properties = WorkbookPropertiesExtractor.new
-    parse_with_handler(xssf_reader.get_workbook_data, workbook_properties)
+    self.class.parse_with_handler(xssf_reader.get_workbook_data, workbook_properties)
 
     workbook_properties.properties
   end
 
-  def parse_with_handler(input_source, handler)
+  def self.parse_with_handler(input_source, handler)
     parser = org.apache.poi.ooxml.util.SAXHelper.newXMLReader
     parser.set_content_handler(handler)
 
@@ -98,11 +98,11 @@ class XLSXStreamingReader
       sheet = xssf_reader.get_sheets_data.take(sheet_number + 1).last
 
       begin
-        parse_with_handler(sheet,
-                           SheetHandler.new(xssf_reader.get_shared_strings_table,
-                                            xssf_reader.get_styles_table,
-                                            workbook_properties,
-                                            &block))
+        self.class.parse_with_handler(sheet,
+                                      SheetHandler.new(SharedStrings.new(xssf_reader.get_shared_strings_data),
+                                                       xssf_reader.get_styles_table,
+                                                       workbook_properties,
+                                                       &block))
       ensure
         sheet.close
         pkg.close
@@ -112,6 +112,53 @@ class XLSXStreamingReader
            org.apache.poi.openxml4j.exceptions.ODFNotOfficeXmlFileException,
            org.apache.poi.openxml4j.exceptions.OLE2NotOfficeXmlFileException
       raise XLSXFileNotReadable.new(@filename)
+    end
+  end
+
+  # XLSX files have an embedded sharedStrings.xml file that is a lookup table
+  # mapping indexes to the original text content of the spreadsheet.  It's a
+  # space-saving measure to avoid storing the same string bytes over and over.
+  #
+  # POI's sharedStringTable keeps a lot of stuff in memory that we don't care
+  # about (we just want the text), so here's a simpler implementation.
+  class SharedStrings
+    STRING_ITEM_ELEMENT = 'si'
+    TEXT_ELEMENT = 't'
+
+    def initialize(stream)
+      @strings = []
+      XLSXStreamingReader.parse_with_handler(stream, self)
+    end
+
+    def get_item_at(n)
+      @strings.fetch(n)
+    end
+
+    def method_missing(*)
+    end
+
+    def start_element(uri, local_name, name, attributes)
+      if local_name.casecmp(STRING_ITEM_ELEMENT) == 0
+        @item_strings = []
+      elsif local_name.casecmp(TEXT_ELEMENT) == 0
+        @value = ''
+        @recording = true
+      end
+    end
+
+    def characters(chars, start, length)
+      if @recording
+        @value += java.lang.String.new(chars, start, length)
+      end
+    end
+
+    def end_element(uri, local_name, name)
+      if local_name.casecmp(TEXT_ELEMENT) == 0
+        @item_strings << @value
+        @recording = false
+      elsif local_name.casecmp(STRING_ITEM_ELEMENT) == 0
+        @strings << @item_strings.join("")
+      end
     end
   end
 
@@ -221,7 +268,7 @@ class XLSXStreamingReader
         # Finished our cell.  Process its value.
         parsed_value = case @value_type
                        when :string
-                         @string_table.get_item_at(Integer(@value)).get_string
+                         @string_table.get_item_at(Integer(@value))
                        when :number
                          if @value == ''
                            nil
