@@ -19,7 +19,8 @@ class TestXLSXStreamingReader
     ["hello", 123, 6, nil, true, Time.parse('2019-03-10 00:00:00')],
     ["world", 123.45, 6, nil, false, Time.parse('2000-01-01 00:00:00')],
     [nil, nil, nil, nil, nil, nil],
-    ["\xE5\xBC\x82\xE5\x9B\xBD\xE6\x83\x85\xE8\xB0\x83", -100, 100, nil, false, Time.parse('2050-06-30 00:00:00')]
+    ["\xE5\xBC\x82\xE5\x9B\xBD\xE6\x83\x85\xE8\xB0\x83", -100, 100, nil, false, Time.parse('2050-06-30 00:00:00')],
+    [nil, -100, 100, nil, false, Time.parse('2050-06-30 00:00:00')]
   ]
 
   def test_exotic_sheet

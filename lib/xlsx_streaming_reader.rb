@@ -183,6 +183,10 @@ class XLSXStreamingReader
 
     # Turn A into 1; Z into 26; AA into 27, etc.
     def col_reference_to_index(s)
+      if s.empty?
+        return 0
+      end
+
       raise ArgumentError.new(s) unless s =~ /\A[A-Z]+\z/
       val = 0
       s.each_char do |ch|
@@ -197,7 +201,7 @@ class XLSXStreamingReader
       if local_name.casecmp(ROW_ELEMENT) == 0
         # New row
         @current_row = []
-        @last_column = 'A'
+        @last_column = ''
       elsif local_name.casecmp(CELL_ELEMENT) == 0
         @value = ''
 
