@@ -37,6 +37,10 @@
 # XLSX files are sparse, so empty/null cells are usually not stored.  See "Note
 # on sparse cell storage" below for further explanation.
 
+unless RUBY_PLATFORM == 'java'
+  raise "xlsx_streaming_reader requires a JRuby runtime.  Cannot continue!"
+end
+
 Dir.glob(File.join(File.dirname(__FILE__), 'poi', '**/*.jar')).each do |jar|
   require File.absolute_path(jar)
 end
