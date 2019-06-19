@@ -31,6 +31,22 @@ class TestXLSXStreamingReader
     end
   end
 
+  TEST_1904_DATE_CONTENT = [
+    :header,
+    Time.parse('2019-05-15'),
+    Time.parse('2019-05-31'),
+    Time.parse('2019-04-16'),
+    Time.parse('2019-04-24'),
+  ]
+
+  def test_1904_dates
+    file = 'transfer_template_1904_dates.xlsx'
+    XLSXStreamingReader.new(fixture_file(file)).each.zip(TEST_1904_DATE_CONTENT).each_with_index do |(row, expected_date), idx|
+      next if idx == 0
+      assert_equal(file, expected_date, row[9])
+    end
+  end
+
   def fixture_file(name)
     File.join(File.dirname(__FILE__), 'fixtures', name)
   end
@@ -44,6 +60,7 @@ class TestXLSXStreamingReader
   end
 
   def call
+    test_1904_dates
     test_exotic_sheet
     test_big_sheet
   end

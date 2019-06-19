@@ -300,7 +300,7 @@ class XLSXStreamingReader
                            nil
                          else
                            java_date = org.apache.poi.ss.usermodel.DateUtil.get_java_date(Float(@value),
-                                                                                          @workbook_properties['date1904'] == 'true')
+                                                                                          is_boolean_true(@workbook_properties['date1904']))
                            Time.at(java_date.getTime / 1000)
                          end
                        when :boolean
@@ -324,6 +324,10 @@ class XLSXStreamingReader
 
     def method_missing(*)
       # Don't care
+    end
+
+    def is_boolean_true(s)
+      ['true', '1'].include?(s.to_s.strip.downcase)
     end
   end
 
