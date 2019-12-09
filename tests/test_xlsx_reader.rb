@@ -20,7 +20,9 @@ class TestXLSXStreamingReader
     ["world", 123.45, 6, nil, false, Time.parse('2000-01-01 00:00:00')],
     [nil, nil, nil, nil, nil, nil],
     ["\xE5\xBC\x82\xE5\x9B\xBD\xE6\x83\x85\xE8\xB0\x83", -100, 100, nil, false, Time.parse('2050-06-30 00:00:00')],
-    [nil, -100, 100, nil, false, Time.parse('2050-06-30 00:00:00')]
+    ["date1", nil, nil, nil, nil, Time.parse('1843-08-31 00:00:00')],
+    ["date2", nil, nil, nil, nil, Time.parse('1900-01-01 00:00:00')],
+    ["date3", nil, nil, nil, nil, Time.parse('1899-12-31 00:00:00')],
   ]
 
   def test_exotic_sheet
@@ -37,6 +39,9 @@ class TestXLSXStreamingReader
     Time.parse('2019-05-31'),
     Time.parse('2019-04-16'),
     Time.parse('2019-04-24'),
+    Time.parse('1845-03-16'),
+    Time.parse('1904-01-01'),
+    Time.parse('1903-12-31'),
   ]
 
   def test_1904_dates

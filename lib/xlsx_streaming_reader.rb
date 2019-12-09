@@ -299,9 +299,13 @@ class XLSXStreamingReader
                          if @value == ''
                            nil
                          else
-                           java_date = org.apache.poi.ss.usermodel.DateUtil.get_java_date(Float(@value),
-                                                                                          is_boolean_true(@workbook_properties['date1904']))
-                           Time.at(java_date.getTime / 1000)
+                           value_int = Integer(@value)
+
+                           epoch = is_boolean_true(@workbook_properties['date1904']) ?
+                                     java.time.LocalDate.of(1904, 1, 1).atStartOfDay(java.time.ZoneId.systemDefault) :
+                                     java.time.LocalDate.of(1899, 12, 30).atStartOfDay(java.time.ZoneId.systemDefault)
+
+                           Time.at(epoch.plusDays(value_int).toEpochSecond)
                          end
                        when :boolean
                          @value != '0'
