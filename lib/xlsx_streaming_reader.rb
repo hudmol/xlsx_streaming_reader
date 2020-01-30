@@ -71,12 +71,17 @@ class XLSXStreamingReader
   end
 
   def extract_workbook_properties(xssf_reader)
-    workbook = xssf_reader.get_workbook_data
-
     workbook_properties = WorkbookPropertiesExtractor.new
     self.class.parse_with_handler(xssf_reader.get_workbook_data, workbook_properties)
 
     workbook_properties.properties
+  end
+
+  def extract_sheet_properties(xssf_reader)
+    sheet_properties = WorkbookSheetsExtractor.new
+    self.class.parse_with_handler(xssf_reader.get_workbook_data, sheet_properties)
+
+    sheet_properties.sheets
   end
 
   def self.parse_with_handler(input_source, handler)
@@ -94,12 +99,29 @@ class XLSXStreamingReader
     end
   end
 
-  def each_row(sheet_number = 0, &block)
+  def each_row(sheet_specifier = 0, &block)
     begin
       pkg = org.apache.poi.openxml4j.opc.OPCPackage.open(@filename, org.apache.poi.openxml4j.opc.PackageAccess::READ)
       xssf_reader = org.apache.poi.xssf.eventusermodel.XSSFReader.new(pkg)
       workbook_properties = extract_workbook_properties(xssf_reader)
-      sheet = xssf_reader.get_sheets_data.take(sheet_number + 1).last
+
+      sheet_properties = extract_sheet_properties(xssf_reader)
+
+      sheet = if sheet_specifier.is_a?(Integer)
+                sheet_number = sheet_specifier + 1
+                xssf_reader.get_sheets_data.take(sheet_number).last
+              elsif sheet_specifier.is_a?(String)
+                # sheet_specifier is the name of the sheet
+                matched_sheet = sheet_properties.find {|sheet| sheet.fetch('name').to_s.strip == sheet_specifier.strip}
+
+                if !matched_sheet
+                  raise "Couldn't find a sheet matching name '%s'" % [sheet_specifier.strip]
+                end
+
+                xssf_reader.get_sheet(matched_sheet.fetch('r:id'))
+              else
+                raise "Invalid sheet specifier: #{sheet_specifier}.  Needs to be an integer or a string."
+              end
 
       begin
         self.class.parse_with_handler(sheet,
@@ -357,4 +379,29 @@ class XLSXStreamingReader
       @properties
     end
   end
+
+  class WorkbookSheetsExtractor
+    attr_reader :sheets
+
+    def initialize
+      @sheets = []
+    end
+
+    def method_missing(*)
+      # Ignored
+    end
+
+    def start_element(uri, local_name, name, attributes)
+      if local_name == 'sheet'
+        sheet_properties = {}
+
+        attributes.getLength.times do |i|
+          sheet_properties[attributes.getName(i)] = attributes.getValue(i)
+        end
+
+        @sheets << sheet_properties
+      end
+    end
+  end
+
 end
