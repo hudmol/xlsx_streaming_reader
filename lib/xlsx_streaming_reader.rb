@@ -17,8 +17,8 @@
 #
 #   <... outer stuff>
 #     <row>
-#     </row>
 #       <c r="A1" t="n"><v>123</v></c><c r="B1" t="n"><v>456</v></c>
+#     </row>
 #     <row>
 #       <c r="A2" t="n"><v>789</v></c><c r="B2" t="s"><v>hello</v></c>
 #     </row>
